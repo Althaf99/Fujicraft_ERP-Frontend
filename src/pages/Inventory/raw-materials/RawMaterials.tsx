@@ -19,9 +19,17 @@ const RawMaterials: React.FC = () => {
   const [addItemDialogOpen, setAddItemDialogOpen] = useState(false);
   const [addStorageDialogOpen, setAddStorageDialogOpen] = useState(false);
 
+
   // Add item dialog fields
   const [category, setCategory] = useState('');
   const [itemValue, setItemValue] = useState('');
+
+  // Vendor-specific fields
+  const [vendorContact, setVendorContact] = useState('');
+  const [vendorAddress, setVendorAddress] = useState('');
+  // Brand-specific fields
+  const [brandCode, setBrandCode] = useState('');
+  const [brandCountry, setBrandCountry] = useState('');
 
   // Add storage dialog fields
   const [typeId, setTypeId] = useState('');
@@ -48,23 +56,31 @@ const RawMaterials: React.FC = () => {
 
   // Add item (category) handler
   const handleAddItem = async () => {
-    if (!category || !itemValue) return;
+    if (!category) return;
     let added;
     if (category === 'materialType') {
+      if (!itemValue) return;
       added = await addRawMaterialType({ name: itemValue });
       setTypes([...types, added]);
     } else if (category === 'materialColor') {
+      if (!itemValue) return;
       added = await addColor({ name: itemValue });
       setColors([...colors, added]);
     } else if (category === 'vendor') {
-      added = await addVendor({ name: itemValue });
+      if (!itemValue || !vendorContact || !vendorAddress) return;
+      added = await addVendor({ name: itemValue, contact: vendorContact,address: vendorAddress });
       setVendors([...vendors, added]);
     } else if (category === 'brand') {
-      added = await addBrand({ name: itemValue });
+      if (!itemValue || !brandCode || !brandCountry) return;
+      added = await addBrand({ name: itemValue, code: brandCode, country: brandCountry });
       setBrands([...brands, added]);
     }
     setCategory('');
     setItemValue('');
+    setVendorContact('');
+    setVendorAddress('');
+    setBrandCode('');
+    setBrandCountry('');
     setAddItemDialogOpen(false);
   };
 
@@ -146,15 +162,63 @@ const RawMaterials: React.FC = () => {
             </select>
           </label>
           <label>
-            Item Value
+            Name
             <input
               type="text"
               value={itemValue}
               onChange={e => setItemValue(e.target.value)}
               style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid #ccc', marginTop: 4 }}
-              placeholder="Enter value"
+              placeholder={ 'Enter name'}
             />
           </label>
+          {category === 'vendor' && (
+            <>
+              <label>
+                Contact
+                <input
+                  type="text"
+                  value={vendorContact}
+                  onChange={e => setVendorContact(e.target.value)}
+                  style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid #ccc', marginTop: 4 }}
+                  placeholder="Enter contact"
+                />
+              </label>
+              <label>
+                Address
+                <input
+                  type="text"
+                  value={vendorAddress}
+                  onChange={e => setVendorAddress(e.target.value)}
+                  style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid #ccc', marginTop: 4 }}
+                  placeholder="Enter address"
+                />
+              </label>
+            </>
+          )}
+          {category === 'brand' && (
+            <>
+              <label>
+                Brand Code
+                <input
+                  type="text"
+                  value={brandCode}
+                  onChange={e => setBrandCode(e.target.value)}
+                  style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid #ccc', marginTop: 4 }}
+                  placeholder="Enter brand code"
+                />
+              </label>
+              <label>
+                Country
+                <input
+                  type="text"
+                  value={brandCountry}
+                  onChange={e => setBrandCountry(e.target.value)}
+                  style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid #ccc', marginTop: 4 }}
+                  placeholder="Enter country"
+                />
+              </label>
+            </>
+          )}
           <button
             style={{
               padding: '10px 0',
@@ -168,7 +232,14 @@ const RawMaterials: React.FC = () => {
               marginTop: 8
             }}
             onClick={handleAddItem}
-            disabled={!category || !itemValue}
+            disabled={
+              !category ||
+              (category === 'vendor'
+                ? !itemValue || !vendorContact || !vendorAddress
+                : category === 'brand'
+                  ? !itemValue || !brandCode || !brandCountry
+                  : !itemValue)
+            }
           >
             Save
           </button>
