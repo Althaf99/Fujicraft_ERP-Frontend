@@ -1,20 +1,7 @@
 import axios from 'axios';
 
+import { API_BASE } from '../../../api';
 
-// Type declaration for process.env in Create React App
-declare global {
-  // eslint-disable-next-line no-var
-  var process: {
-    env: {
-      REACT_APP_API_URL?: string;
-      [key: string]: string | undefined;
-    };
-  };
-}
-const API_BASE =
-  (import.meta as any).env?.VITE_API_URL ||
-  (typeof process !== 'undefined' && process.env.REACT_APP_API_URL) ||
-  'http://localhost:5001/api';
 
 export const fetchRawMaterialTypes = () => axios.get(`${API_BASE}/raw-material-types`).then(res => res.data);
 export const addRawMaterialType = (data: { name: string }) => axios.post(`${API_BASE}/raw-material-types`, data).then(res => res.data);

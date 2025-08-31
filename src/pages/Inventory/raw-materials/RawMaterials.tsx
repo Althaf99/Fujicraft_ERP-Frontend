@@ -81,7 +81,6 @@ const RawMaterials: React.FC = () => {
     setVendorAddress('');
     setBrandCode('');
     setBrandCountry('');
-    setAddItemDialogOpen(false);
   };
 
   // Add storage handler
