@@ -53,11 +53,19 @@ const DataTable: React.FC<DataTableProps> = ({ columns, data, actions }) => {
           </tr>
         ) : (
           data.map((row, idx) => (
-            <tr key={idx} style={{ borderBottom: '1px solid #ececec', transition: 'background 0.2s' }}>
+            <tr
+              key={idx}
+              style={{
+                borderBottom: '1px solid #ececec',
+                transition: 'background 0.2s',
+                background: idx % 2 === 1 ? '#f8fafc' : '#fff',
+                cursor: 'pointer'
+              }}
+            >
               {columns.map(col => (
-                <td key={col.key} style={{ padding: '13px 16px', fontSize: 15, background: '#fff' }}>{row[col.key]}</td>
+                <td key={col.key} style={{ padding: '13px 16px', fontSize: 15 }}>{row[col.key]}</td>
               ))}
-              {actions && <td style={{ padding: '13px 16px', background: '#fff', textAlign: 'center', verticalAlign: 'middle' }}>{actions(row, idx)}</td>}
+              {actions && <td style={{ padding: '13px 16px', textAlign: 'center', verticalAlign: 'middle' }}>{actions(row, idx)}</td>}
             </tr>
           ))
         )}
