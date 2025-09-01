@@ -48,6 +48,9 @@ const RawMaterials: React.FC = () => {
   const [weight, setWeight] = useState('');
   const [materialCode, setMaterialCode] = useState('');
 
+  // Edit mode state
+  const [editItem, setEditItem] = useState<any | null>(null);
+
   // Data lists
   const [types, setTypes] = useState<any[]>([]);
   const [colors, setColors] = useState<any[]>([]);
@@ -70,7 +73,14 @@ const RawMaterials: React.FC = () => {
 
   // Update handler (open dialog pre-filled, for now just log)
   const handleUpdate = (row: any) => {
-    console.log('Edit', row);
+    setEditItem(row);
+    setTypeId(row.RawMaterialTypeId?.toString() || '');
+    setColorId(row.ColorId?.toString() || '');
+    setVendorId(row.VendorId?.toString() || '');
+    setBrandId(row.BrandId?.toString() || '');
+    setWeight(row.weight?.toString() || '');
+    setMaterialCode(row.materialCode || '');
+    setAddStorageDialogOpen(true);
   };
 
 
@@ -106,27 +116,9 @@ const RawMaterials: React.FC = () => {
   // Add storage handler
   const handleAddStorage = async () => {
     if (typeId && colorId && vendorId && brandId && weight) {
-         
-      const existing = items.find(
-        item =>
-          String(item.RawMaterialTypeId) === String(typeId) &&
-          String(item.ColorId) === String(colorId) &&
-          String(item.VendorId) === String(vendorId) &&
-          String(item.BrandId) === String(brandId)
-      );
-      if (existing) {
-        const updatedItem = await updateRawMaterialByAttribute({
-          RawMaterialTypeId: typeId,
-          ColorId: colorId,
-          VendorId: vendorId,
-          BrandId: brandId,
-          weight: parseFloat(weight)
-        });
-        setItems(items.map(item =>
-          item === existing ? updatedItem : item
-        ));
-      } else {
-        const newItem = await addRawMaterial({
+      if (editItem) {
+        // Update existing item
+        await updateRawMaterial(editItem.id, {
           RawMaterialTypeId: typeId,
           ColorId: colorId,
           VendorId: vendorId,
@@ -134,7 +126,40 @@ const RawMaterials: React.FC = () => {
           weight: parseFloat(weight),
           materialCode,
         });
-        setItems([...items, newItem]);
+        setEditItem(null);
+        // Fetch latest items from backend
+        const updatedItems = await fetchRawMaterials();
+        setItems(updatedItems);
+      } else {
+        // Add new or update by attribute
+        const existing = items.find(
+          item =>
+            String(item.RawMaterialTypeId) === String(typeId) &&
+            String(item.ColorId) === String(colorId) &&
+            String(item.VendorId) === String(vendorId) &&
+            String(item.BrandId) === String(brandId)
+        );
+        if (existing) {
+          await updateRawMaterialByAttribute({
+            RawMaterialTypeId: typeId,
+            ColorId: colorId,
+            VendorId: vendorId,
+            BrandId: brandId,
+            weight: parseFloat(weight)
+          });
+          const updatedItems = await fetchRawMaterials();
+          setItems(updatedItems);
+        } else {
+          const newItem = await addRawMaterial({
+            RawMaterialTypeId: typeId,
+            ColorId: colorId,
+            VendorId: vendorId,
+            BrandId: brandId,
+            weight: parseFloat(weight),
+            materialCode,
+          });
+          setItems([...items, newItem]);
+        }
       }
       setTypeId('');
       setColorId('');
@@ -207,7 +232,16 @@ const RawMaterials: React.FC = () => {
       {/* Add Storage Dialog */}
       <AddStorageDialog
         open={addStorageDialogOpen}
-        onClose={() => setAddStorageDialogOpen(false)}
+        onClose={() => {
+          setAddStorageDialogOpen(false);
+          setEditItem(null);
+          setTypeId('');
+          setColorId('');
+          setVendorId('');
+          setBrandId('');
+          setWeight('');
+          setMaterialCode('');
+        }}
         types={types}
         colors={colors}
         vendors={vendors}
