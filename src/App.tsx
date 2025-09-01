@@ -1,13 +1,4 @@
 
-function MasterBatch() {
-  return (
-    <div style={{ padding: 32, textAlign: 'center' }}>
-      <h2>Master Batch</h2>
-      <p>This is the Master Batch page.</p>
-    </div>
-  );
-}
-
 function Bags() {
   return (
     <div style={{ padding: 32, textAlign: 'center' }}>
@@ -33,6 +24,7 @@ import Navbar from './components/Navbar';
 import Login from './pages/login/login';
 import { useState } from 'react';
 import RawMaterials from './pages/Inventory/raw-materials/RawMaterials';
+import MasterBatch from './pages/Inventory/master-batch/MasterBatch';
 
 function Home() {
   return (
