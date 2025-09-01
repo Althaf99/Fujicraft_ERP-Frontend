@@ -1,11 +1,15 @@
 
 import { useEffect, useState } from 'react';
-import Dialog from '../../../components/Dialog';
+// import Dialog from '../../../components/Dialog';
+import AddStorageDialog from './AddStorageDialog';
+import AddItemDialog from './AddItemDialog';
+import DataTable from '../../../components/DataTable';
 import {
   fetchRawMaterialTypes,
   fetchColors,
   fetchVendors,
   addRawMaterial,
+  updateRawMaterialByAttribute,
   fetchRawMaterials,
   fetchBrands,
   addBrand,
@@ -86,15 +90,36 @@ const RawMaterials: React.FC = () => {
   // Add storage handler
   const handleAddStorage = async () => {
     if (typeId && colorId && vendorId && brandId && weight) {
-      const newItem = await addRawMaterial({
-        RawMaterialTypeId: typeId,
-        ColorId: colorId,
-        VendorId: vendorId,
-        BrandId: brandId,
-        weight: parseFloat(weight),
-        materialCode,
-      });
-      setItems([...items, newItem]);
+         
+      const existing = items.find(
+        item =>
+          String(item.RawMaterialTypeId) === String(typeId) &&
+          String(item.ColorId) === String(colorId) &&
+          String(item.VendorId) === String(vendorId) &&
+          String(item.BrandId) === String(brandId)
+      );
+      if (existing) {
+        const updatedItem = await updateRawMaterialByAttribute({
+          RawMaterialTypeId: typeId,
+          ColorId: colorId,
+          VendorId: vendorId,
+          BrandId: brandId,
+          weight: parseFloat(weight)
+        });
+        setItems(items.map(item =>
+          item === existing ? updatedItem : item
+        ));
+      } else {
+        const newItem = await addRawMaterial({
+          RawMaterialTypeId: typeId,
+          ColorId: colorId,
+          VendorId: vendorId,
+          BrandId: brandId,
+          weight: parseFloat(weight),
+          materialCode,
+        });
+        setItems([...items, newItem]);
+      }
       setTypeId('');
       setColorId('');
       setVendorId('');
@@ -143,216 +168,66 @@ const RawMaterials: React.FC = () => {
         </button>
       </div>
 
+
       {/* Add Item Dialog */}
-      <Dialog open={addItemDialogOpen} title="Add New Item" onClose={() => setAddItemDialogOpen(false)}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16, minWidth: 260 }}>
-          <label>
-            Category
-            <select
-              value={category}
-              onChange={e => setCategory(e.target.value)}
-              style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid #ccc', marginTop: 4 }}
-            >
-              <option value="">Select category</option>
-              <option value="materialType">Material Type</option>
-              <option value="materialColor">Material Color</option>
-              <option value="vendor">Vendor</option>
-              <option value="brand">Brand</option>
-            </select>
-          </label>
-          <label>
-            Name
-            <input
-              type="text"
-              value={itemValue}
-              onChange={e => setItemValue(e.target.value)}
-              style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid #ccc', marginTop: 4 }}
-              placeholder={ 'Enter name'}
-            />
-          </label>
-          {category === 'vendor' && (
-            <>
-              <label>
-                Contact
-                <input
-                  type="text"
-                  value={vendorContact}
-                  onChange={e => setVendorContact(e.target.value)}
-                  style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid #ccc', marginTop: 4 }}
-                  placeholder="Enter contact"
-                />
-              </label>
-              <label>
-                Address
-                <input
-                  type="text"
-                  value={vendorAddress}
-                  onChange={e => setVendorAddress(e.target.value)}
-                  style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid #ccc', marginTop: 4 }}
-                  placeholder="Enter address"
-                />
-              </label>
-            </>
-          )}
-          {category === 'brand' && (
-            <>
-              <label>
-                Brand Code
-                <input
-                  type="text"
-                  value={brandCode}
-                  onChange={e => setBrandCode(e.target.value)}
-                  style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid #ccc', marginTop: 4 }}
-                  placeholder="Enter brand code"
-                />
-              </label>
-              <label>
-                Country
-                <input
-                  type="text"
-                  value={brandCountry}
-                  onChange={e => setBrandCountry(e.target.value)}
-                  style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid #ccc', marginTop: 4 }}
-                  placeholder="Enter country"
-                />
-              </label>
-            </>
-          )}
-          <button
-            style={{
-              padding: '10px 0',
-              background: '#2563eb',
-              color: '#fff',
-              border: 'none',
-              borderRadius: 6,
-              fontWeight: 600,
-              fontSize: '1rem',
-              cursor: 'pointer',
-              marginTop: 8
-            }}
-            onClick={handleAddItem}
-            disabled={
-              !category ||
-              (category === 'vendor'
-                ? !itemValue || !vendorContact || !vendorAddress
-                : category === 'brand'
-                  ? !itemValue || !brandCode || !brandCountry
-                  : !itemValue)
-            }
-          >
-            Save
-          </button>
-        </div>
-      </Dialog>
+      <AddItemDialog
+        open={addItemDialogOpen}
+        onClose={() => setAddItemDialogOpen(false)}
+        category={category}
+        setCategory={setCategory}
+        itemValue={itemValue}
+        setItemValue={setItemValue}
+        vendorContact={vendorContact}
+        setVendorContact={setVendorContact}
+        vendorAddress={vendorAddress}
+        setVendorAddress={setVendorAddress}
+        brandCode={brandCode}
+        setBrandCode={setBrandCode}
+        brandCountry={brandCountry}
+        setBrandCountry={setBrandCountry}
+        onSave={handleAddItem}
+      />
 
       {/* Add Storage Dialog */}
-      <Dialog open={addStorageDialogOpen} title="Create Raw Material Storage" onClose={() => setAddStorageDialogOpen(false)}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16, minWidth: 260 }}>
-          <label>
-            Material Type
-            <select
-              value={typeId}
-              onChange={e => setTypeId(e.target.value)}
-              style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid #ccc', marginTop: 4 }}
-            >
-              <option value="">Select type</option>
-              {types.map((opt: any) => (
-                <option key={opt.id} value={opt.id}>{opt.name}</option>
-              ))}
-            </select>
-          </label>
-          <label>
-            Color
-            <select
-              value={colorId}
-              onChange={e => setColorId(e.target.value)}
-              style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid #ccc', marginTop: 4 }}
-            >
-              <option value="">Select color</option>
-              {colors.map((opt: any) => (
-                <option key={opt.id} value={opt.id}>{opt.name}</option>
-              ))}
-            </select>
-          </label>
-          <label>
-            Vendor
-            <select
-              value={vendorId}
-              onChange={e => setVendorId(e.target.value)}
-              style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid #ccc', marginTop: 4 }}
-            >
-              <option value="">Select vendor</option>
-              {vendors.map((opt: any) => (
-                <option key={opt.id} value={opt.id}>{opt.name}</option>
-              ))}
-            </select>
-          </label>
-          <label>
-            Brand
-            <select
-              value={brandId}
-              onChange={e => setBrandId(e.target.value)}
-              style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid #ccc', marginTop: 4 }}
-            >
-              <option value="">Select brand</option>
-              {brands.map((opt: any) => (
-                <option key={opt.id} value={opt.id}>{opt.name}</option>
-              ))}
-            </select>
-          </label>
-          <label>
-            Weight
-            <input
-              type="number"
-              value={weight}
-              onChange={e => setWeight(e.target.value)}
-              style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid #ccc', marginTop: 4 }}
-              placeholder="Enter weight"
-            />
-          </label>
-          <label>
-            Material Code
-            <input
-              type="text"
-              value={materialCode}
-              onChange={e => setMaterialCode(e.target.value)}
-              style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid #ccc', marginTop: 4 }}
-              placeholder="Enter material code"
-            />
-          </label>
-          <button
-            style={{
-              padding: '10px 0',
-              background: '#059669',
-              color: '#fff',
-              border: 'none',
-              borderRadius: 6,
-              fontWeight: 600,
-              fontSize: '1rem',
-              cursor: 'pointer',
-              marginTop: 8
-            }}
-            onClick={handleAddStorage}
-            disabled={!typeId || !colorId || !vendorId || !brandId || !weight}
-          >
-            Save
-          </button>
-        </div>
-      </Dialog>
+      <AddStorageDialog
+        open={addStorageDialogOpen}
+        onClose={() => setAddStorageDialogOpen(false)}
+        types={types}
+        colors={colors}
+        vendors={vendors}
+        brands={brands}
+        typeId={typeId}
+        setTypeId={setTypeId}
+        colorId={colorId}
+        setColorId={setColorId}
+        vendorId={vendorId}
+        setVendorId={setVendorId}
+        brandId={brandId}
+        setBrandId={setBrandId}
+        weight={weight}
+        setWeight={setWeight}
+        onSave={handleAddStorage}
+      />
 
-      <p>This is the Raw Materials page.</p>
-      {items.length > 0 && (
-        <div style={{ marginTop: 32 }}>
-          <h4>Items List</h4>
-          <ul>
-            {items.map((item, idx) => (
-              <li key={idx}>
-                {item.RawMaterialType?.name || item.RawMaterialTypeId} / {item.Color?.name || item.ColorId} / {item.Vendor?.name || item.VendorId} / {item.Brand?.name || item.BrandId} / {item.weight}kg / {item.materialCode}
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
+      <div style={{ marginTop: 32 }}>
+        <DataTable
+          columns={[
+            { key: 'RawMaterialType', label: 'Material Type', width: '1%' },
+            { key: 'Color', label: 'Color', width: '1%' },
+            { key: 'Vendor', label: 'Vendor', width: '1%' },
+            { key: 'Brand', label: 'Brand', width: '1%' },
+            { key: 'weight', label: 'Weight (kg)', width: '1%' },
+          ]}
+          data={items.map(item => ({
+            RawMaterialType: types.find(t => t.id === item.RawMaterialTypeId)?.name || '',
+            Color: colors.find(c => c.id === item.ColorId)?.name || '',
+            Vendor: vendors.find(v => v.id === item.VendorId)?.name || '',
+            Brand: brands.find(b => b.id === item.BrandId)?.name || '',
+            weight: item.weight,
+            materialCode: item.materialCode,
+          }))}
+        />
+      </div>
     </div>
   );
 };

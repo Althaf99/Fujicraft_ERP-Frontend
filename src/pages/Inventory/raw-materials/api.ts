@@ -1,3 +1,5 @@
+// Update a raw material by id
+
 import axios from 'axios';
 
 import { API_BASE } from '../../../api';
@@ -14,6 +16,7 @@ export const addVendor = (data: { name: string, contact?: string, address:string
 
 export const fetchRawMaterials = () => axios.get(`${API_BASE}/raw-materials`).then(res => res.data);
 export const addRawMaterial = (data: any) => axios.post(`${API_BASE}/raw-materials`, data).then(res => res.data);
+export const updateRawMaterialByAttribute = (data: any) => axios.put(`${API_BASE}/raw-materials/update/by-attributes`, data).then(res => res.data);
 
 export const fetchBrands = () => axios.get(`${API_BASE}/brands`).then(res => res.data);
 export const addBrand = (data: { name: string , code: string, country: string}) => axios.post(`${API_BASE}/brands`, data).then(res => res.data);
