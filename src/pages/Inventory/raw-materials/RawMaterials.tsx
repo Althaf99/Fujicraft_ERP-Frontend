@@ -1,9 +1,12 @@
 
 import { useEffect, useState } from 'react';
-// import Dialog from '../../../components/Dialog';
 import AddStorageDialog from './AddStorageDialog';
 import AddItemDialog from './AddItemDialog';
+
 import DataTable from '../../../components/DataTable';
+import EditButton from '../../../components/EditButton';
+import DeleteButton from '../../../components/DeleteButton';
+
 import {
   fetchRawMaterialTypes,
   fetchColors,
@@ -15,7 +18,9 @@ import {
   addBrand,
   addRawMaterialType,
   addColor,
-  addVendor
+  addVendor,
+  deleteRawMaterial,
+  updateRawMaterial
 } from './api';
 
 const RawMaterials: React.FC = () => {
@@ -57,6 +62,17 @@ const RawMaterials: React.FC = () => {
     fetchBrands().then(setBrands);
     fetchRawMaterials().then(setItems);
   }, []);
+
+    const handleDelete = async (row: any) => {
+      await deleteRawMaterial(row.id);
+      setItems((prev: any[]) => prev.filter((item: any) => item.id !== row.id));
+    };
+
+  // Update handler (open dialog pre-filled, for now just log)
+  const handleUpdate = (row: any) => {
+    console.log('Edit', row);
+  };
+
 
   // Add item (category) handler
   const handleAddItem = async () => {
@@ -212,20 +228,28 @@ const RawMaterials: React.FC = () => {
       <div style={{ marginTop: 32 }}>
         <DataTable
           columns={[
-            { key: 'RawMaterialType', label: 'Material Type', width: '1%' },
-            { key: 'Color', label: 'Color', width: '1%' },
-            { key: 'Vendor', label: 'Vendor', width: '1%' },
-            { key: 'Brand', label: 'Brand', width: '1%' },
-            { key: 'weight', label: 'Weight (kg)', width: '1%' },
+            { key: 'RawMaterialType', label: 'Material Type', width: '15%' },
+            { key: 'Color', label: 'Color', width: '15%' },
+            { key: 'Vendor', label: 'Vendor', width: '15%' },
+            { key: 'Brand', label: 'Brand', width: '15%' },
+            { key: 'weight', label: 'Weight (kg)', width: '15%' },
           ]}
           data={items.map(item => ({
+            id: item.id,
             RawMaterialType: types.find(t => t.id === item.RawMaterialTypeId)?.name || '',
             Color: colors.find(c => c.id === item.ColorId)?.name || '',
             Vendor: vendors.find(v => v.id === item.VendorId)?.name || '',
             Brand: brands.find(b => b.id === item.BrandId)?.name || '',
             weight: item.weight,
             materialCode: item.materialCode,
+            _original: item,
           }))}
+          actions={(row) => (
+            <>
+              <EditButton onClick={() => handleUpdate(row._original)} />
+              <DeleteButton onClick={() => handleDelete(row._original)} />
+            </>
+          )}
         />
       </div>
     </div>
