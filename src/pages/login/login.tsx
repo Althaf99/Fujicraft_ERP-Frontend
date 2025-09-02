@@ -28,7 +28,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
   return (
     <div className="login-container">
       <div className="login-box">
-        <h2 className="login-title">Login</h2>
+        <h2 className="login-title">Login to ERP</h2>
         <form className="login-form" onSubmit={handleSubmit}>
           <input
             type="text"
